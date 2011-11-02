@@ -10,28 +10,6 @@
 
 	/* 
 
-		Usage:
-
-		A route looks like this:
-			/blog/{{username}}/{{category}} => /blog/category/{{category}}
-
-		In this case, a URL like "blog/davery/css" will be parsed, in EE, as "blog/category/css"
-		Several variables will be available in the template:
-
-			{freeway_username} - davery
-			{freeway_category} - css
-			{freeway_1} - blog
-			{freeway_2} - davery
-			{freeway_3} - css
-			{freeway_4+} - (blank)
-			{freeway_info} - debug info from Freeway
-
-		Future feature ideas:
-
-		- Route partial segments like /foo{{bar}}/ => /category-{{bar}}/
-		- Run common queries like category_id on tokens before passing them on to new ones
-			(example: {{category from=cat_name to=cat_id}} would take the cat name, but return te id 
-
 	*/
 
 class Freeway_ext {
@@ -304,7 +282,6 @@ class Freeway_ext {
 		$this->EE->db->where('class', 'Freeway_ext');
 		$this->EE->db->delete('exp_extensions');
 	}
-
 
 }
 
