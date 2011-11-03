@@ -8,7 +8,7 @@ If you set a route like this, visitors should be able to visit "journals/admin",
 
 # Why?
 
-(See Issue #1)[https://github.com/averyvery/freeway/issues/1]. Routes are a valuable concept because they separate your URLs from your data. They make more sense in an MVC application, but in EE, they provide added power and flexibility around your URLs.
+[See Issue #1](https://github.com/averyvery/freeway/issues/1). Routes are a valuable concept because they separate your URLs from your data. They make more sense in an MVC application, but in EE, they provide added power and flexibility around your URLs.
 
 # Usage
 
@@ -34,6 +34,57 @@ If you set a route like this, visitors should be able to visit "journals/admin",
 	- {freeway_1}, {freeway_2} - "original" segments, the one you see in your browser bar
 	- {segment_1}, {segment_2} - "parsed" segments, the ones EE is sent
 	- {freeway_info} - debug info from Freeway
+
+# Example Settings/Template
+
+Installed Freeway, but still don't get it? Try the following settings:
+
+	journals => blogs/
+	journals/{{user}} => blogs/users/{{user}}
+	product/{{product_id}}/{{action}} => catalog/product_lookup/id/{{product_id}}/{{action}}
+
+Then, set the following code in your index template:
+
+	<p>EE parses the current URI as:
+		<strong>
+			/ {segment_1}
+			{if segment_2}/ {segment_2}{/if}
+			{if segment_3}/ {segment_3}{/if}
+			{if segment_4}/ {segment_4}{/if}
+			{if segment_5}/ {segment_5}{/if}
+			{if segment_6}/ {segment_6}{/if}
+		</strong>
+	</p>
+
+	<p>The original URI has been stored:
+		<strong>
+			/ {freeway_1}
+			{if freeway_2}/ {freeway_2}{/if}
+			{if freeway_3}/ {freeway_3}{/if}
+			{if freeway_4}/ {freeway_4}{/if}
+			{if freeway_5}/ {freeway_5}{/if}
+			{if freeway_6}/ {freeway_6}{/if}
+		</strong>
+	</p>
+
+	<p>And some variables have been saved:<br>
+		<strong>
+		freeway_user: {freeway_product_id}<br>
+		freeway_product_id: {freeway_product_id}<br>
+		freeway_action: {freeway_action}
+		</strong>
+	</p>
+
+	<p>
+		<a href="/product/42423423/buy/" target="_blank">/product/42423423/buy/</a><br>
+		<a href="/journals/" target="_blank">/journals</a><br>
+		<a href="/journals/jimmy/" target="_blank">/journals/jimmy</a><br>
+	</p>
+
+	<hr>
+	{freeway_info}
+
+You should be able to click around and watch the segments and variables update.
 
 # Future Ideas
 
