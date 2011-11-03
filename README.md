@@ -18,7 +18,7 @@ If you set a route like this, visitors should be able to visit "journals/admin",
 
 		/blog/{{username}}/{{category}} => /blog/category/{{category}}
 
-	In this case, a URL like "blog/davery/css" will be parsed, in EE, as "blog/category/css". <code>{freeway_username}</code> will be set to "davery", and <code>{freeway_category}</code> to "category".
+	In this case, a URL like "blog/davery/css" will be treated, in EE, as "blog/category/css".
 	Several variables will be available in the template:
 
 		{freeway_username} - davery
