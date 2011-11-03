@@ -30,10 +30,10 @@ If you set a route like this, visitors should be able to visit "journals/admin",
 		{freeway_4+} - (blank)
 		{freeway_info} - debug info from Freeway
 - Template variables:
-	- {freeway_[varname]} - the value of {{varname}} in the URL match
-	- {freeway_1}, {freeway_2} - "original" segments, the one you see in your browser bar
-	- {segment_1}, {segment_2} - "parsed" segments, the ones EE is sent
-	- {freeway_info} - debug info from Freeway
+	- <code>{freeway_[varname]}</code> - the value of <code>{{varname}}</code> in the URL match
+	- <code>{freeway_1}</code>, <code>{freeway_2}</code> - "original" segments, the one you see in your browser bar
+	- <code>{segment_1}</code>, <code>{segment_2}</code> - "parsed" segments, the ones EE is sent
+	- <code>{freeway_info}</code> - debug info from Freeway
 
 # Example Settings/Template
 
