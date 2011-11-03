@@ -4,7 +4,11 @@ Freeway adds routes (a common web application concept) to EE. You set the routes
 
 	journals/{{user}} => blogs/users/{{user}}
 
-If you set a route like this, visitors should be able to visit "journals/admin", but their request will be interpreted by EE as "blogs/users/admin/". Additionally, the user will be available in the template as {freeway_user}. So, that's fun.
+If you set a route like this, visitors should be able to visit "journals/admin", but their request will be interpreted by EE as "blogs/users/admin/". EE will load the blogs template group and the user template. Segments one, two, and three will be blogs, users, and admin. Additionally, "admin" will be available in the template as {freeway_user}. So, that's fun.
+
+# Why?
+
+(See Issue #1)[https://github.com/averyvery/freeway/issues/1]. Routes are a valuable concept because they separate your URLs from your data. They make more sense in an MVC application, but in EE, they provide added power and flexibility around your URLs.
 
 # Usage
 
@@ -12,6 +16,7 @@ If you set a route like this, visitors should be able to visit "journals/admin",
 - Enable it on the Addon -> Extensions page
 - Routes
 	A route looks like this:
+
 		/blog/{{username}}/{{category}} => /blog/category/{{category}}
 
 	In this case, a URL like "blog/davery/css" will be parsed, in EE, as "blog/category/css"
