@@ -14,8 +14,7 @@ If you set a route like this, visitors should be able to visit "journals/admin",
 
 - Install Freeway in your third_party folder
 - Enable it on the Addon -> Extensions page
-- Routes
-	A route looks like this:
+- Set routes on the extension settings page. A route looks like this:
 
 		/blog/{{username}}/{{category}} => /blog/category/{{category}}
 
