@@ -250,13 +250,13 @@ class Freeway_ext {
 	{
 		
 		$data = array(
-			'class'				=> 'Freeway_ext',
-			'hook'				=> 'sessions_start',
-			'method'			=> 'Freeway_ext',
-			'settings'		=> serialize($this->settings_default),
-			'priority'		=> 10,
-			'version'			=> $this->version,
-			'enabled'			=> 'y'
+			'class' => 'Freeway_ext',
+			'hook' => 'sessions_start',
+			'method' => 'Freeway_ext',
+			'settings' => serialize($this->settings_default),
+			'priority' => 10,
+			'version' => $this->version,
+			'enabled' => 'y'
 		);
 
 		// insert in database
