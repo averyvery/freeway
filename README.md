@@ -4,7 +4,7 @@ Freeway adds routes (a common web application concept) to EE. You set the routes
 
 	journals/{{user}} => blogs/users/{{user}}
 
-If you set a route like this, visitors should be able to visit "journals/admin", but their request will be interpreted by EE as "blogs/users/admin/". EE will load the blogs template group and the user template. Segments one, two, and three will be blogs, users, and admin. Additionally, "admin" will be available in the template as {freeway_user}. So, that's fun.
+If you set a route like this, visitors should be able to visit "journals/admin", but their request will be interpreted by EE as "blogs/users/admin/". EE will load the blogs template group and the user template. Segments one, two, and three will be blogs, users, and admin. Additionally, "admin" will be available in the template as <code>{freeway_user}</code>. So, that's fun.
 
 # Why?
 
