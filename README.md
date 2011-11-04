@@ -68,7 +68,7 @@ Then, set the following code in your index template:
 
 	<p>And some variables have been saved:<br>
 		<strong>
-		freeway_user: {freeway_product_id}<br>
+		freeway_user: {freeway_user}<br>
 		freeway_product_id: {freeway_product_id}<br>
 		freeway_action: {freeway_action}
 		</strong>
