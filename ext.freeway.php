@@ -19,7 +19,7 @@ class Freeway_ext {
 	 */
 	var $name = 'Freeway';
 	var $description = 'A routing system for EE'; 
-	var $version = '0.0.1';
+	var $version = '0.0.2';
 	var $settings_exist = 'y';
 	var $docs_url = 'http://github.com/averyvery/Freeway#readme';
 	
@@ -198,7 +198,7 @@ class Freeway_ext {
 		$this->EE->uri->uri_string = implode('/', $route_segments);
 		$this->restore_params();
 		$this->output['Parsed Route'] = $this->EE->uri->uri_string;
-		$this->EE->uri->uri_string = '/blank_segment/' . $this->EE->uri->uri_string;
+		$this->EE->uri->uri_string = $this->EE->uri->uri_string;
 
 	}
 
@@ -240,9 +240,10 @@ class Freeway_ext {
 		$this->EE->uri->segments = array();
 		$this->EE->uri->rsegments = array();
 		$this->EE->uri->_explode_segments();
+		$this->EE->uri->_reindex_segments();
 
 	}
-	 
+
 	/**
 	 * Activate Extension
 	 */
