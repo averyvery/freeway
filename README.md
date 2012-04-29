@@ -63,9 +63,7 @@ You should be able to click around and watch the segments and variables update.
 Freeway uses [Testee](http://experienceinternet.co.uk/software/testee/) for unit testing. To run tests:
 
 - Install [Testee](http://experienceinternet.co.uk/software/testee/)
-- Symlink the test.freeway.php from freeway/testee to testee/tests:
-
-	ln -s ~/Sites/mysite/third_party/freeway/test.freeway.php ~/Sites/mysite/third_party/testee/tests/test.freeway.php
+- Copy the test.freeway.php from freeway/testee to testee/tests:
 
 ## Future Ideas
 
