@@ -1,0 +1,12 @@
+<?php
+
+	/*
+		Freeway Routes file
+		Specify routes in this array, and place it in expressionengine/config/
+	*/
+
+ return array(
+  'tickets' => 'article/tickets'
+ );
+
+?>

@@ -14,79 +14,61 @@ If you set a route like this, visitors should be able to visit "journals/admin",
 
 - Install Freeway in your third_party folder
 - Enable it on the Addon -> Extensions page
-- Set routes on the extension settings page. A route looks like this:
+- Copy freeway_routes.php.sample to your config directory, and remove the '.sample'.
+- Define your routes in config/freeway_routes.php:
 
-		/blog/{{username}}/{{category}} => /blog/category/{{category}}
+	return array(
+		'/blog/{{username}}/{{category}}' => '/blog/view/category/{{category}}'
+	)
 
-	In this case, a URL like "blog/davery/css" will be treated, in EE, as "blog/category/css".
+	In this case, a URL like "blog/davery/css" will be treated, in EE, as "blog/view/category/css".
 	Several variables will be available in the template:
 
-		{freeway_username} - davery
-		{freeway_category} - css
+		{segment_1} - blog
+		{segment_2} - view
+		{segment_3} - category
+		{segment_4} - css
+
 		{freeway_1} - blog
 		{freeway_2} - davery
 		{freeway_3} - css
-		{freeway_4+} - (blank)
-		{freeway_info} - debug info from Freeway
-- Template variables:
-	- <code>{freeway_[varname]}</code> - the value of <code>{{varname}}</code> in the URL match
-	- <code>{freeway_1}</code>, <code>{freeway_2}</code> - "original" segments, the one you see in your browser bar
-	- <code>{segment_1}</code>, <code>{segment_2}</code> - "parsed" segments, the ones EE is sent
-	- <code>{freeway_info}</code> - debug info from Freeway
+		{freeway_4} - (blank)
 
-## Example Settings/Template
+		{freeway_username} - davery
+		{freeway_category} - css
 
-Installed Freeway, but still don't get it? Try the following settings:
+## MSM
 
-	journals => blogs/
-	journals/{{user}} => blogs/users/{{user}}
-	product/{{product_id}}/{{action}} => catalog/product_lookup/id/{{product_id}}/{{action}}
+Freeway will assume all routes are global, unless you namespace them with your site names:
 
-Then, set the following code in your index template:
+	return array(
+		'default_site' => Array(
+			'foo' => 'bar'
+		),
+		'french_site' => Array(
+			'fou' => 'bar'
+		)
+	)
 
-	<p>EE parses the current URI as:
-		<strong>
-			/ {segment_1}
-			{if segment_2}/ {segment_2}{/if}
-			{if segment_3}/ {segment_3}{/if}
-			{if segment_4}/ {segment_4}{/if}
-			{if segment_5}/ {segment_5}{/if}
-			{if segment_6}/ {segment_6}{/if}
-		</strong>
-	</p>
+## Debugging
 
-	<p>The original URI has been stored:
-		<strong>
-			/ {freeway_1}
-			{if freeway_2}/ {freeway_2}{/if}
-			{if freeway_3}/ {freeway_3}{/if}
-			{if freeway_4}/ {freeway_4}{/if}
-			{if freeway_5}/ {freeway_5}{/if}
-			{if freeway_6}/ {freeway_6}{/if}
-		</strong>
-	</p>
+Use the {freeway_info} var to found out more about how Freeway is parsing the URL.
 
-	<p>And some variables have been saved:<br>
-		<strong>
-		freeway_user: {freeway_user}<br>
-		freeway_product_id: {freeway_product_id}<br>
-		freeway_action: {freeway_action}
-		</strong>
-	</p>
-
-	<p>
-		<a href="/product/42423423/buy/" target="_blank">/product/42423423/buy/</a><br>
-		<a href="/journals/" target="_blank">/journals</a><br>
-		<a href="/journals/jimmy/" target="_blank">/journals/jimmy</a><br>
-	</p>
-
-	<hr>
 	{freeway_info}
 
 You should be able to click around and watch the segments and variables update.
 
+## Testing
+
+Freeway uses [Testee](http://experienceinternet.co.uk/software/testee/) for unit testing. To run tests:
+
+- Install [Testee](http://experienceinternet.co.uk/software/testee/)
+- Symlink the test.freeway.php from freeway/testee to testee/tests:
+
+	ln -s ~/Sites/mysite/third_party/freeway/test.freeway.php ~/Sites/mysite/third_party/testee/tests/test.freeway.php
+
 ## Future Ideas
 
 - Route partial segments through, like /foo{{bar}}/ => /category-{{bar}}/
-- Run common queries like category_id on tokens before passing them on to new ones (example: {{category from=cat_name to=cat_id}} would take the cat name, but return te id 
+- Run common queries like category_id on tokens before passing them on to new ones (example: {{category from=cat_name to=cat_id}} would take the cat name, but return te id
 

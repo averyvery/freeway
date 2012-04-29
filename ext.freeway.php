@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /**
  * Freeway Extension Class for ExpressionEngine 2
@@ -8,111 +8,179 @@
  *
  */
 
-	/* 
+	/*
 
 	*/
 
 class Freeway_ext {
 
-	/**
-	 * Required vars
-	 */
-	var $name = 'Freeway';
-	var $description = 'A routing system for EE'; 
-	var $version = '0.0.2';
-	var $settings_exist = 'y';
-	var $docs_url = 'http://github.com/averyvery/Freeway#readme';
-	
-	/**
-	 * Settings
-	 */
-	var $settings = array();
-	var $settings_default = array();
+	/* @group required vars */
 
-	function settings(){
-		$settings['routes'] = array('t', null, '');
-		return $settings;
-	}
+		var $name = 'Freeway';
+		var $description = 'A routing system for EE';
+		var $version = '0.1';
+		var $settings_exist = 'n';
+		var $docs_url = 'http://github.com/averyvery/Freeway#readme';
 
-	/**
-	 * Extension constructor
-	 */
-	function Freeway_ext($settings='')
-	{
+	/* @end */
 
-		$this->setup($settings);
+	/* @group init */
 
-		if($this->should_execute()){
+		function Freeway_ext(){
 
-			$this->store_original_uri();
-			$this->load_routes();
-			$this->remove_and_store_params();
+			$this->set_vars();
 
-			if($this->uri_matches_pattern()){
-				$this->parse_new_uri_from_route();
-				$this->rebuild_uri_for_parsing();
-			};
+			if($this->should_execute()){
+
+				$this->store_original_uri();
+				$this->remove_and_store_params();
+				$this->routes = $this->load_routes();
+
+				if($this->uri_matches_pattern()){
+					$this->parse_new_uri_from_route();
+					$this->rebuild_uri_for_parsing();
+				};
+
+			}
 
 			$this->output_freeway_data();
 
 		}
 
-	}
+		function set_vars(){
 
-	function load_routes(){
-	
-		$routes_from_settings = $this->settings['routes'];
-		$routes_array = explode("\n", $routes_from_settings);
-		$this->routes = Array();
+			$this->EE =& get_instance();
+			$this->original_uri = $this->EE->uri->uri_string;
+			$this->log = Array();
+			$this->vars = Array();
+			$this->notices = Array();
 
-		foreach($routes_array as $route){
-			$route_is_blank = $route == "";
-			if($route_is_blank == false){
-				$route_pair = explode(' => ', $route);
-				$this->routes[$route_pair[0]] = $route_pair[1];
-			}
 		}
 
-		return count($this->routes) > 0;
+	/* @end */
 
-	}
+	/* @group feedback */
 
-	function setup($settings){
-	
-		$this->settings = $settings;
-		$this->EE =& get_instance();
-		$this->original_uri = $this->EE->uri->uri_string;
-		$this->output = Array();
-		$this->vars = Array();
+		function notice($str){
+			array_push($this->notices, $str);
+		}
 
-	}
+		function output_freeway_data(){
 
-	function remove_and_store_params(){
+			$output = '<div style="font-size: 11px; font-family: sans-serif;">';
+			$output .= '<h3>Notices:</h3>';
+			$output .= '<ul>';
+			foreach($this->notices as $notice){
+				$output .= '<li>';
+				$output .= $notice;
+				$output .= '</li>';
+			}
+			$output .= '</ul>';
+			$output .= '<h3>Routes:</h3>';
+			$output .= '<ul>';
+			foreach($this->routes as $match => $route){
+				$output .= '<li>';
+				$output .= $match . ' => ' . $route;
+				$output .= '</li>';
+			}
+			$output .= '</ul>';
+			$output .= '<h3>Vars:</h3>';
+			$output .= '<ul>';
+			foreach($this->vars as $key => $value){
+				$output .= '<li>';
+				$output .= $key . ' => ' . $value;
+				$output .= '</li>';
+			}
+			$output .= '</ul>';
+			$output .= '<h3>Routed data:</h3>';
+			$output .= '<ul>';
+			foreach($this->log as $title => $value){
+				$output .= '<li>';
+				$output .= $title . ' => ' . $value;
+				$output .= '</li>';
+			}
+			$output .= '</ul>';
+			$output .= '</div>';
 
-		// Store URI for debugging
-		$this->param_pattern  = '#(';    // begin match group
-		$this->param_pattern .=   '\?';    // match a '?';
-		$this->param_pattern .=   '|';   // OR
-		$this->param_pattern .=   '\&';    // match a '?';
-		$this->param_pattern .= ')';    // end match group
-		$this->param_pattern .= '.*$';   // continue matching characters until end of string
-		$this->param_pattern .= '#';    // end match
+			$this->EE->config->_global_vars['freeway_info'] = $output;
 
-		$matches = Array();
-		preg_match($this->param_pattern, $this->EE->uri->uri_string, $matches);
-		$this->url_params = (isset($matches[0])) ? $matches[0] : '';
-		$this->EE->uri->uri_string = preg_replace($this->param_pattern, '', $this->EE->uri->uri_string);
+		}
 
-	}
+	/* @end */
 
-	function restore_params(){
-		$this->EE->uri->uri_string .= $this->url_params;
-	}
+	/* @group loading routes */
+
+		function get_site_name(){
+
+			$site_name = '';
+			$sites = $this->EE->db->select('site_name')
+				->from('sites')
+				->where('site_id', $this->EE->config->item('site_id'))
+				->get();
+
+			foreach($sites->row() as $row){
+				$site_name = $row;
+			}
+
+			return $site_name;
+		}
+
+		function load_routes(){
+
+			$site_name = $this->get_site_name();
+			$routes_path = APPPATH . 'config/freeway_routes.php';
+			$routes;
+
+			if(file_exists($routes_path)){
+				$routes = include($routes_path);
+			} else {
+				$this->notice('freeway_routes.php not found');
+				$routes = Array();
+			}
+
+			if(isset($routes[$site_name]) && is_array($routes[$site_name])){
+				$this->notice('Routes namespaced to site: ' . $site_name);
+				$routes = $routes[$site_name];
+			} else {
+				$this->notice('No route group matches ' . $site_name . ' in the routes. Assuming all routes are global.');
+			}
+
+			return $routes;
+
+		}
+
+	/* @end */
+
+	/* @group managing params */
+
+		function remove_and_store_params(){
+
+			// Store URI for debugging
+			$this->param_pattern  = '#(';    // begin match group
+			$this->param_pattern .=   '\?';    // match a '?';
+			$this->param_pattern .=   '|';   // OR
+			$this->param_pattern .=   '\&';    // match a '?';
+			$this->param_pattern .= ')';    // end match group
+			$this->param_pattern .= '.*$';   // continue matching characters until end of string
+			$this->param_pattern .= '#';    // end match
+
+			$matches = Array();
+			preg_match($this->param_pattern, $this->EE->uri->uri_string, $matches);
+			$this->url_params = (isset($matches[0])) ? $matches[0] : '';
+			$this->EE->uri->uri_string = preg_replace($this->param_pattern, '', $this->EE->uri->uri_string);
+
+		}
+
+		function restore_params(){
+			$this->EE->uri->uri_string .= $this->url_params;
+		}
+
+	/* @end */
 
 	function log($title, $value){
-		$this->output[$title] = $value;
+		$this->log[$title] = $value;
 	}
-	
+
 	function store_original_uri(){
 
 		$uri_array = explode('/', $this->original_uri);
@@ -126,20 +194,18 @@ class Freeway_ext {
 	}
 
 	function should_execute(){
-		
+
 		// is a URI? (lame test for checking to see if we're viewing the CP or not)
-		return 
+		return
 			isset($this->EE->uri->uri_string) &&
-			 $this->EE->uri->uri_string != '' &&
-			// Reeroute actually executes twice - but the second timee
-			// the "settings" object isn't an array, which breaks it.
-			gettype($this->settings) == 'array';
-		
+			$this->EE->uri->uri_string != '' &&
+			REQ === 'PAGE';
+
 	}
 
 	function convert_pattern_to_regex($pattern){
 		$regex = preg_replace('#\{\{.*?\}\}#', '.*?', $pattern);
-		return '#' . $regex . '#';
+		return '#^' . $regex . '($|/)#';
 	}
 
 	function uri_matches_pattern(){
@@ -148,9 +214,9 @@ class Freeway_ext {
 		$reversed_routes = array_reverse($this->routes);
 
 		foreach($reversed_routes as $pattern => $route){
-			
+
 			$pattern_matches = Array();
-			$pattern_match_regex =	$this->convert_pattern_to_regex($pattern); 
+			$pattern_match_regex =	$this->convert_pattern_to_regex($pattern);
 			preg_match($pattern_match_regex, $this->original_uri, $pattern_matches);
 			$match_occurred = isset($pattern_matches[0]);
 
@@ -171,7 +237,7 @@ class Freeway_ext {
 	}
 
 	function parse_new_uri_from_route(){
-	
+
 		$uri_segments = explode('/', $this->original_uri);
 		$pattern_segments = explode('/', $this->pattern);
 		$route_segments = explode('/', $this->route);
@@ -202,39 +268,6 @@ class Freeway_ext {
 
 	}
 
-	function output_freeway_data(){
-
-		$output = '<div style="font-size: 11px; font-family: sans-serif;">';
-		$output .= '<h3>Routes:</h3>';
-		$output .= '<ul>';
-		foreach($this->routes as $match => $route){
-			$output .= '<li>';
-			$output .= $match . ' => ' . $route;
-			$output .= '</li>';
-		}
-		$output .= '</ul>';
-		$output .= '<h3>Vars:</h3>';
-		$output .= '<ul>';
-		foreach($this->vars as $key => $value){
-			$output .= '<li>';
-			$output .= $key . ' => ' . $value;
-			$output .= '</li>';
-		}
-		$output .= '</ul>';
-		$output .= '<h3>Routed data:</h3>';
-		$output .= '<ul>';
-		foreach($this->output as $title => $value){
-			$output .= '<li>';
-			$output .= $title . ' => ' . $value;
-			$output .= '</li>';
-		}
-		$output .= '</ul>';
-		$output .= '</div>';
-
-		$this->EE->config->_global_vars['freeway_info'] = $output;
-
-	}
-
 	function rebuild_uri_for_parsing(){
 
 		$this->EE->uri->segments = array();
@@ -249,21 +282,16 @@ class Freeway_ext {
 	 */
 	function activate_extension()
 	{
-		
+
 		$data = array(
 			'class' => 'Freeway_ext',
 			'hook' => 'sessions_start',
 			'method' => 'Freeway_ext',
-			'settings' => serialize($this->settings_default),
 			'priority' => 10,
 			'version' => $this->version,
 			'enabled' => 'y'
 		);
 
-		// insert in database
-		$this->EE->functions->clear_caching('db');
-		$this->EE->db->insert('exp_extensions', $data);
-					
 	}
 
 	/**
@@ -279,11 +307,11 @@ class Freeway_ext {
 	 */
 	function disable_extension()
 	{
-		$this->EE->functions->clear_caching('db');
 		$this->EE->db->where('class', 'Freeway_ext');
 		$this->EE->db->delete('exp_extensions');
 	}
 
 }
 
-?>
+/* End of file      : ext.freeway.php */
+/* File location    : third_party/freeway/ext.freeway.php */
