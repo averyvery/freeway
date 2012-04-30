@@ -17,9 +17,9 @@ If you set a route like this, visitors who hit "journals/admin" will have their 
 - Copy freeway_routes.php.sample to your config directory, and remove the '.sample'.
 - Define your routes in config/freeway_routes.php:
 
-	return array(
-		'/blog/{{username}}/{{category}}' => '/blog/view/category/{{category}}'
-	)
+		return array(
+			'/blog/{{username}}/{{category}}' => '/blog/view/category/{{category}}'
+		)
 
 	In this case, a URL like "blog/davery/css" will be treated, in EE, as "blog/view/category/css".
 	Several variables will be available in the template:
