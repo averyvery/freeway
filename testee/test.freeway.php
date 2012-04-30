@@ -17,8 +17,8 @@ class Freeway_tests extends Testee_unit_test_case {
 	/* @group helpers*/
 
 		public function setUp() {
+			parent::setUp();
 			$this->f = new Freeway_ext();
-			Mock::generate('EE_URI', get_class($this) .'_mock_template');
 		}
 
 		public function tearDown() {
@@ -174,7 +174,10 @@ class Freeway_tests extends Testee_unit_test_case {
 		/* @group get_site_name */
 
 			public function tests_get_site_name() {
-				$this->assertTrue(false);
+				$this->EE->db->expectCallCount('get', 0);
+				$this->assertEqual($this->f->get_site_name(Array()), '');
+				$this->assertEqual($this->f->get_site_name(Array('foo')), 'foo');
+				$this->EE->db->expectCallCount('get', 2);
 			}
 
 		/* @end */
@@ -221,7 +224,7 @@ class Freeway_tests extends Testee_unit_test_case {
 
 		/* @group convert_pattern_to_regex */
 
-			function tests_convert_pattern_to_regex($pattern){
+			function tests_convert_pattern_to_regex(){
 				$this->assertTrue(false);
 			}
 

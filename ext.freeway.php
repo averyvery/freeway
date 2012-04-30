@@ -120,19 +120,23 @@ class Freeway_ext {
 
 	/* @group loading routes */
 
-		function get_site_name(){
+		function get_site_name($array){
 
 			$site_name = '';
-			$sites = $this->EE->db->select('site_name')
+
+			$query = $this->EE->db->select('site_name')
 				->from('sites')
 				->where('site_id', $this->EE->config->item('site_id'))
 				->get();
 
-			foreach($sites->row() as $row){
+			$sites = isset($array) ? $array : $query->row();
+
+			foreach($sites as $row){
 				$site_name = $row;
 			}
 
 			return $site_name;
+
 		}
 
 		function load_routes($path){
