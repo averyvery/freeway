@@ -65,6 +65,11 @@ Freeway uses [Testee](http://experienceinternet.co.uk/software/testee/) for unit
 - Install [Testee](http://experienceinternet.co.uk/software/testee/)
 - Copy the test.freeway.php from freeway/testee to testee/tests:
 
+## Known Issues/Incompatibilities
+
+- Freeway won't work unless you're [removing the index.php](http://expressionengine.com/wiki/Remove_index.php_From_URLs/) from your URL.
+- In order to route, you'll need to disable [Strict URLs.](http://expressionengine.com/user_guide/cp/design/templates/global_template_preferences.html)
+
 ## Future Ideas
 
 - Route partial segments through, like /foo{{bar}}/ => /category-{{bar}}/
