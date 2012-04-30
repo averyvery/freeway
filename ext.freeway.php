@@ -3,9 +3,9 @@
 /**
  * Freeway Extension Class for ExpressionEngine 2
  *
- * @package		Freeway
- * @author		Doug Avery <doug.avery@viget.com>
- *
+ * @package Freeway
+ * @author Doug Avery <doug.avery@viget.com>
+ * @link https://github.com/averyvery/freeway/
  */
 
 	/*
