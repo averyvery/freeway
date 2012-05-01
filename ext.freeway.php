@@ -34,25 +34,28 @@ class Freeway_ext {
 		function Freeway_ext() {
 			$this->EE =& get_instance();
 			if($this->should_execute(REQ)){
-				$this->EE->config->_global_vars['freeway_has_run'] = true;
-				$this->prepare();
-				$this->route();
-				$this->output_freeway_data();
+				$this->execute();
 			}
 		}
 
 		function should_execute($request) {
-			return
-				!isset($this->EE->config->_global_vars['freeway_has_run']) &&
-				$this->EE->uri->uri_string != '' &&
-				$request === 'PAGE';
+			$freeway_hasnt_run = !isset($this->EE->config->_global_vars['freeway_has_run']);
+			$view_is_page = $request === 'PAGE';
+			$uri_isnt_blank = $this->EE->uri->uri_string != '';
+			return $freeway_hasnt_run && $view_is_page & $uri_isnt_blank;
+		}
+
+		function execute(){
+			$this->EE->config->_global_vars['freeway_has_run'] = true;
+			$this->prepare();
+			$this->route();
+			$this->finish();
 		}
 
 		function prepare() {
-			$this->set_uri($this->EE->uri->uri_string);
-			$this->remove_and_store_query_string();
-			$this->close_uri();
+			$this->set_uri();
 			$this->store_uri();
+			$this->close_uri();
 			$this->routes = $this->load_routes(APPPATH . 'config/freeway_routes.php');
 		}
 
@@ -76,6 +79,11 @@ class Freeway_ext {
 
 		function notice($str) {
 			array_push($this->notices, $str);
+		}
+
+		function finish() {
+			$this->log('New URI', $this->EE->uri->uri_string);
+			$this->output_freeway_data();
 		}
 
 		function output_freeway_data() {
@@ -183,6 +191,7 @@ class Freeway_ext {
 
 		function set_uri() {
 			$this->uri = $this->EE->uri->uri_string;
+			$this->log('Original URI', $this->uri);
 		}
 
 		function store_uri() {
@@ -192,7 +201,6 @@ class Freeway_ext {
 				$count = $i + 1;
 				$this->EE->config->_global_vars['freeway_' . $count] = $value;
 			}
-			$this->log('Original URI', $this->uri);
 		}
 
 		function close_uri() {
@@ -200,24 +208,6 @@ class Freeway_ext {
 			if(!$uri_has_slash){
 				$this->uri .= '/';
 			}
-		}
-
-		function remove_and_store_query_string() {
-			$this->param_pattern  = '#(';    // begin match group
-			$this->param_pattern .=   '\?';    // match a '?';
-			$this->param_pattern .=   '|';   // OR
-			$this->param_pattern .=   '\&';    // match a '&';
-			$this->param_pattern .= ')';    // end match group
-			$this->param_pattern .= '.*$';   // continue matching characters until end of string
-			$this->param_pattern .= '#';    // end match
-			$matches = Array();
-			preg_match($this->param_pattern, $this->EE->uri->uri_string, $matches);
-			$this->query_string = (isset($matches[0])) ? $matches[0] : '';
-			$this->EE->uri->uri_string = preg_replace($this->param_pattern, '', $this->EE->uri->uri_string);
-		}
-
-		function restore_query_string() {
-			$this->EE->uri->uri_string .= $this->query_string;
 		}
 
 	/* @end */
@@ -285,8 +275,6 @@ class Freeway_ext {
 			}
 
 			$this->EE->uri->uri_string = implode('/', $route_segments);
-			$this->restore_query_string();
-			$this->output['Parsed Route'] = $this->EE->uri->uri_string;
 
 		}
 
