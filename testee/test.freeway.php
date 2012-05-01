@@ -19,6 +19,7 @@ class Freeway_tests extends Testee_unit_test_case {
 		public function setUp() {
 			parent::setUp();
 			$this->f = new Freeway_ext();
+			$this->f->EE->uri->uri_string = '';
 		}
 
 		public function tearDown() {
@@ -36,6 +37,7 @@ class Freeway_tests extends Testee_unit_test_case {
 				$methods
 			);
 			$this->f = new $class_name();
+			$this->f->EE->uri->uri_string = '';
 		}
 
 		public function unset_vars($vars) {
@@ -66,8 +68,11 @@ class Freeway_tests extends Testee_unit_test_case {
 				$this->f->expectCallCount('output_freeway_data', $should_execute);
 			}
 
-			public function tests_constructor() {
+			public function tests__calls_right_methods_when_should_execute() {
 				$this->constructor__calls_helper(false);
+			}
+
+			public function tests__calls_right_methods_when_shouldnt_execute() {
 				$this->constructor__calls_helper(true);
 			}
 
@@ -75,16 +80,18 @@ class Freeway_tests extends Testee_unit_test_case {
 
 	/* @group should_execute */
 
-			public function tests_should_execute__uri_string_detection() {
-				$this->f->original_uri = 'xxx';
+			public function tests__executes_when_page_and_uri() {
+				$this->f->EE->uri->uri_string = 'xxx';
 				$this->assertTrue($this->f->should_execute('PAGE'));
-				$this->f->original_uri = '';
+			}
+
+			public function tests__doesnt_execute_when_page_and_no_uri() {
+				$this->f->EE->uri->uri_string = '';
 				$this->assertFalse($this->f->should_execute('PAGE'));
 			}
 
-			public function tests_should_execute__request_detection() {
-				$this->f->original_uri = 'xxx';
-				$this->assertFalse($this->f->should_execute('CP'));
+			public function tests__doesnt_execute_when_cp_and_uri() {
+				$this->f->uri = 'xxx';
 				$this->assertFalse($this->f->should_execute('CP'));
 			}
 
@@ -92,15 +99,14 @@ class Freeway_tests extends Testee_unit_test_case {
 
 		/* @group prepare */
 
-			public function tests_prepare() {
-				$this->mock('Prepare', 'store_original_uri', 'remove_and_store_params', 'load_routes');
-				$this->f->returns('load_routes', array('foo', 'bar'));
-				unset($this->m->routes);
-				$this->assertFalse(isset($this->m->routes));
+			public function tests__calls_prep_methods() {
+				$this->mock('Prepare', 'set_uri', 'remove_and_store_query_string', 'close_uri', 'store_uri', 'load_routes');
 				$this->f->prepare();
-				$this->f->expectOnce('store_original_uri', false);
-				$this->f->expectOnce('remove_and_store_params', false);
-				$this->assertEqual($this->f->routes, array('foo', 'bar'));
+				$this->f->expectOnce('set_uri', false);
+				$this->f->expectOnce('remove_and_store_query_string', false);
+				$this->f->expectOnce('close_uri', false);
+				$this->f->expectOnce('store_uri', false);
+				$this->f->expectOnce('load_routes', false);
 			}
 
 		/* @end */
@@ -108,16 +114,19 @@ class Freeway_tests extends Testee_unit_test_case {
 		/* @group route */
 
 			public function route_helper($matches) {
+				$this->mock('Route', 'uri_matches_pattern', 'parse_new_uri_from_route', 'rebuild_uri_for_parsing');
 				$this->f->returns('uri_matches_pattern', $matches);
-				$this->route();
+				$this->f->route();
 				$this->f->expectCallCount('parse_new_uri_from_route', $matches);
 				$this->f->expectCallCount('rebuild_uri_for_parsing', $matches);
 			}
 
-			public function route() {
-				$this->mock('Route', 'uri_matches_pattern', 'parse_new_uri_from_route', 'rebuild_uri_for_parsing');
-				$this->route_helper(false);
+			public function tests__calls_route_methods_when_uri_matches() {
 				$this->route_helper(true);
+			}
+
+			public function tests__calls_route_methods_when_uri_doesnt_match() {
+				$this->route_helper(false);
 			}
 
 		/* @end */
@@ -128,7 +137,7 @@ class Freeway_tests extends Testee_unit_test_case {
 
 		/* @group log */
 
-			public function tests_log() {
+			public function tests__logs_values() {
 				$this->f->log('foo', 'bar');
 				$this->assertEqual($this->f->log_data['foo'], 'bar');
 			}
@@ -137,7 +146,7 @@ class Freeway_tests extends Testee_unit_test_case {
 
 		/* @group notice */
 
-			public function tests_notice() {
+			public function tests__logs_notices() {
 				$this->f->notice('foo');
 				$this->assertEqual($this->f->notices[0], 'foo');
 			}
@@ -146,7 +155,7 @@ class Freeway_tests extends Testee_unit_test_case {
 
 		/* @group output_freeway_data */
 
-			public function tests_output_freeway_data() {
+			public function tests__saves_data_as_freeway_info() {
 				$this->f->EE->config->_global_vars['freeway_info'] = '';
 				$this->f->output_freeway_data();
 				$this->assertPattern('#Routes#', $this->f->EE->config->_global_vars['freeway_info']);
@@ -160,8 +169,11 @@ class Freeway_tests extends Testee_unit_test_case {
 
 		/* @group get_site_name */
 
-			public function tests_get_site_name() {
+			public function tests__returns_blank_sitename_from_empty_array() {
 				$this->assertEqual($this->f->get_site_name(Array()), '');
+			}
+
+			public function tests__returns_blank_sitename_from_full_array() {
 				$this->assertEqual($this->f->get_site_name(Array('foo')), 'foo');
 			}
 
@@ -171,70 +183,130 @@ class Freeway_tests extends Testee_unit_test_case {
 
 			var $file_path = '/tmp/freeway_routes.php';
 
-			public function load_routes__make_file($str) {
+			public function routes_make_file($str) {
 				$file = fopen($this->file_path, 'w');
 				fwrite($file, $str);
 				fclose($file);
 			}
 
-			public function load_routes__delete_file() {
+			public function routes_delete_file() {
 				unlink($this->file_path);
 			}
 
-			public function tests_file_creation() {
-				$this->load_routes__make_file('');
+			public function tests__helper_makes_file() {
+				$this->routes_make_file('');
 				$this->assertTrue(file_exists($this->file_path));
-				$this->load_routes__delete_file();
+			}
+
+			public function tests__helper_deletes_file() {
+				$this->routes_delete_file();
 				$this->assertFalse(file_exists($this->file_path));
 			}
 
-			public function tests_load_routes() {
-				$this->load_routes__make_file('<?php return array("foo" => "bar");');
-				$this->assertEqual($this->f->load_routes($this->file_path), Array('foo' => 'bar'));
-				$this->load_routes__make_file('');
-				$this->assertEqual($this->f->load_routes($this->file_path), Array());
+			public function tests__loads_blank_array_from_no_file() {
 				$this->assertEqual($this->f->load_routes(''), Array());
-				$this->load_routes__delete_file();
+			}
+
+			public function tests__loads_array_from_valid_file() {
+				$this->routes_make_file('<?php return array("foo" => "bar");');
+				$this->assertEqual($this->f->load_routes($this->file_path), Array('foo' => 'bar'));
+			}
+
+			public function tests__loads_blank_array_from_blank_file() {
+				$this->routes_make_file('');
+				$this->assertEqual($this->f->load_routes($this->file_path), Array());
+			}
+
+			public function tests__deletes_file() {
+				$this->routes_delete_file();
 			}
 
 		/* @end */
 
 	/* @end */
 
-	/* @group managing params */
+	/* @group managing uri */
 
-		/* @group store_original_uri */
+		/* @group set_uri */
 
-			public function tests_store_original_uri(){
-				$this->f->original_uri = 'one/two/three';
-				$this->f->store_original_uri();
+			public function tests__sets_uri(){
+				unset($this->f->uri);
+				$this->f->EE->uri->uri_string = 'foo';
+				$this->f->set_uri();
+				$this->assertEqual($this->f->uri, 'foo');
+			}
+
+		/* @end */
+
+		/* @group store_uri */
+
+			public function tests__stores_uri_as_freeway_vars(){
+				$this->f->uri = 'one/two/';
+				$this->f->store_uri();
 				$this->assertEqual($this->f->EE->config->_global_vars['freeway_1'], 'one');
 				$this->assertEqual($this->f->EE->config->_global_vars['freeway_2'], 'two');
-				$this->assertEqual($this->f->EE->config->_global_vars['freeway_3'], 'three');
-				$this->assertEqual($this->f->EE->config->_global_vars['freeway_4'], '');
+			}
+
+			public function tests__stores_11_blank_vars_for_unmatched_segments(){
+				$this->f->uri = 'one/';
+				$this->f->store_uri();
+				for ($i = 2; $i < 12; $i++) {
+					$this->assertEqual($this->f->EE->config->_global_vars['freeway_' . $i], '');
+				}
 			}
 
 		/* @end */
 
-		/* @group remove_and_store_params */
+		/* @group close URI */
 
-			public function tests_remove_and_store_params(){
+			public function tests__closes_uri(){
+				$this->f->uri = 'foo';
+				$this->f->close_uri();
+				$this->assertEqual('foo/', $this->f->uri);
+			}
+
+			public function tests__doesnt_alter_closed_uri(){
+				$this->f->uri = 'foo/';
+				$this->f->close_uri();
+				$this->assertEqual('foo/', $this->f->uri);
+			}
+
+		/* @end */
+
+		/* @group remove_and_store_query_string */
+
+			public function tests__removes_normal_query_string(){
 				$this->f->EE->uri->uri_string = 'one?foo=bar&bar=foo';
-				$this->f->remove_and_store_params();
-				$this->assertEqual($this->f->uri_params, '?foo=bar&bar=foo');
+				$this->f->remove_and_store_query_string();
+				$this->assertEqual($this->f->query_string, '?foo=bar&bar=foo');
+			}
+
+			public function tests__removes_ampersand_query_string(){
 				$this->f->EE->uri->uri_string = 'one&foo=bar&bar=foo';
-				$this->f->remove_and_store_params();
-				$this->assertEqual($this->f->uri_params, '&foo=bar&bar=foo');
+				$this->f->remove_and_store_query_string();
+				$this->assertEqual($this->f->query_string, '&foo=bar&bar=foo');
+			}
+
+			public function tests__removes_normal_query_string_from_slashed_uri(){
+				$this->f->EE->uri->uri_string = 'one/?foo=bar&bar=foo';
+				$this->f->remove_and_store_query_string();
+				$this->assertEqual($this->f->query_string, '?foo=bar&bar=foo');
+			}
+
+			public function tests__removes_ampersand_query_string_from_slashed_uri(){
+				$this->f->EE->uri->uri_string = 'one/&foo=bar&bar=foo';
+				$this->f->remove_and_store_query_string();
+				$this->assertEqual($this->f->query_string, '&foo=bar&bar=foo');
 			}
 
 		/* @end */
 
-		/* @group restore_params */
+		/* @group restore_query_string */
 
-			function tests_restore_params(){
+			function tests__restores_query_string() {
 				$this->f->EE->uri->uri_string = 'one';
-				$this->f->uri_params = 'two';
-				$this->f->restore_params();
+				$this->f->query_string = 'two';
+				$this->f->restore_query_string();
 				$this->assertEqual($this->f->EE->uri->uri_string, 'onetwo');
 			}
 
@@ -250,10 +322,19 @@ class Freeway_tests extends Testee_unit_test_case {
 				$this->assertEqual($this->f->convert_pattern_to_regex($pattern), $output);
 			}
 
-			function tests_convert_pattern_to_regex(){
+			function tests__converts_simple_pattern(){
 				$this->helper__convert_pattern_to_regex('foo', '#^foo($|/)#');
+			}
+
+			function tests__converts_tokened_pattern(){
 				$this->helper__convert_pattern_to_regex('foo/{{bar}}', '#^foo/.*?($|/)#');
 				$this->helper__convert_pattern_to_regex('foo/{{bar}}/foo', '#^foo/.*?/foo($|/)#');
+			}
+
+			function tests__converts_wildcard_pattern(){
+				$this->helper__convert_pattern_to_regex('foo/*', '#^foo/.*$#');
+				$this->helper__convert_pattern_to_regex('foo/{{bar}}/foo/*', '#^foo/.*?/foo/.*$#');
+				$this->helper__convert_pattern_to_regex('foo/*/foo($|/)', '#^foo/*/foo($|/)#');
 			}
 
 		/* @end */
@@ -262,33 +343,38 @@ class Freeway_tests extends Testee_unit_test_case {
 
 			function helper__uri_matches_pattern($uri, $pattern, $method = true) {
 				$method = $method ? 'assertTrue' : 'assertFalse';
-				$this->f->original_uri = $uri;
+				$this->f->uri = $uri;
 				$this->{$method}($this->f->uri_matches_pattern(Array($pattern => 'bar')));
 			}
 
-			function tests_uri_matches_pattern(){
-
-				// doesn't match too much or too little
+			function tests__uri_matches_exactly() {
 				$this->helper__uri_matches_pattern('foo', 'foo');
 				$this->helper__uri_matches_pattern('fo', 'foo', false);
 				$this->helper__uri_matches_pattern('ffoo', 'foo', false);
 				$this->helper__uri_matches_pattern('fooo', 'foo', false);
+			}
 
-				// matches start segments
+			function tests__uri_matches_only_start_segments() {
 				$this->helper__uri_matches_pattern('foo/bar', 'foo');
 				$this->helper__uri_matches_pattern('fooo/bar', 'foo', false);
 				$this->helper__uri_matches_pattern('bar/foo', 'foo', false);
+			}
 
-				// doesn't match when only part of pattern
+			function tests__uri_doesnt_match_partial() {
 				$this->helper__uri_matches_pattern('foo', 'foo/bar', false);
+			}
 
-				// matches tokens
+			function tests__uri_matches_tokens() {
 				$this->helper__uri_matches_pattern('foo', '{{a}}');
 				$this->helper__uri_matches_pattern('foo/bar', 'foo/{{a}}');
 				$this->helper__uri_matches_pattern('foo/bar', 'foo/bar/{{a}}', false);
 				$this->helper__uri_matches_pattern('foo/bar', '{{a}}/bar');
 				$this->helper__uri_matches_pattern('foo/bar', '{{a}}/{{b}}');
+			}
 
+			function tests__uri_matches_wildecards() {
+				$this->helper__uri_matches_pattern('foo/bar/foobar', '{{a}}/{{b}}/*');
+				$this->helper__uri_matches_pattern('foo/bar', '{{a}}/{{b}}/*', false);
 			}
 
 		/* @end */
@@ -297,27 +383,25 @@ class Freeway_tests extends Testee_unit_test_case {
 
 			function helper__route($uri, $pattern, $route, $expectation, $method=true) {
 				$method = $method ? 'assertEqual' : 'assertNotEqual';
-				$this->f->uri_params = '';
-				$this->f->original_uri = $uri;
+				$this->f->query_string = '';
+				$this->f->uri = $uri;
 				$this->f->pattern = $pattern;
 				$this->f->route = $route;
 				$this->f->parse_new_uri_from_route();
 				$this->{$method}($this->f->EE->uri->uri_string, $expectation);
 			}
 
-			function tests_parse_new_uri_from_route() {
-
-				// Basics
+			function tests__matches_simple_routes() {
 				$this->helper__route('a', 'a', 'b', 'b');
 				$this->helper__route('a', 'a', 'b', 'a', false);
 				$this->helper__route('a/b/c/d', 'a', 'b', 'b');
+			}
 
-				// token replacement
+			function tests__replaces_tokes() {
 				$this->helper__route('a', '{{foo}}', '{{foo}}', 'a');
 				$this->helper__route('a/b', 'a/{{foo}}', '{{foo}}/a', 'b/a');
 				$this->helper__route('a/b/c', 'a/{{foo}}', '{{foo}}/{{foo}}/{{foo}}', 'b/b/b');
 				$this->helper__route('a/b/c', '{{foo}}/{{bar}}/', 'c/{{bar}}', 'c/b');
-
 			}
 
 		/* @end */
