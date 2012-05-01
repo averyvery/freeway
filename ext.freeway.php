@@ -60,7 +60,10 @@ class Freeway_ext {
 			if($this->uri_matches_pattern($this->routes)){
 				$this->parse_new_uri_from_route();
 				$this->rebuild_uri_for_parsing();
-			};
+				$this->EE->config->_global_vars['freeway_matched'] = true;
+			} else {
+				$this->EE->config->_global_vars['freeway_matched'] = false;
+			}
 		}
 
 	/* @end */

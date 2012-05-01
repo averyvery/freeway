@@ -37,6 +37,9 @@ If you set a route like this, visitors who hit "journals/admin" will have their 
 		{freeway_username} - davery
 		{freeway_category} - css
 
+		{freeway_matched} - true (convenience - will tell you if freeway matched a route or not)
+		{freeway_info} - outputs a list of debug info
+
 ## MSM
 
 Freeway will assume all routes are global, unless you namespace them with your site names:
@@ -49,14 +52,6 @@ Freeway will assume all routes are global, unless you namespace them with your s
 			'fou' => 'bar'
 		)
 	)
-
-## Debugging
-
-Use the {freeway_info} var to found out more about how Freeway is parsing the URL.
-
-	{freeway_info}
-
-You should be able to click around and watch the segments and variables update.
 
 ## Testing
 
