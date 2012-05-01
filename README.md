@@ -46,10 +46,10 @@ Freeway will assume all routes are global, unless you namespace them with your s
 
 	return array(
 		'default_site' => Array(
-			'foo' => 'bar'
+			'about' => 'pages/about'
 		),
-		'french_site' => Array(
-			'fou' => 'bar'
+		'ca_site' => Array(
+			'aboot' => 'pages/about'
 		)
 	)
 
