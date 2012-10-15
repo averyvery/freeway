@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /**
  * Freeway Extension Class for ExpressionEngine 2
@@ -8,7 +8,7 @@
  *
  */
 
-	/* 
+	/*
 
 	*/
 
@@ -18,11 +18,11 @@ class Freeway_ext {
 	 * Required vars
 	 */
 	var $name = 'Freeway';
-	var $description = 'A routing system for EE'; 
-	var $version = '0.0.2';
+	var $description = 'A routing system for EE';
+	var $version = '0.0.3';
 	var $settings_exist = 'y';
 	var $docs_url = 'http://github.com/averyvery/Freeway#readme';
-	
+
 	/**
 	 * Settings
 	 */
@@ -60,7 +60,7 @@ class Freeway_ext {
 	}
 
 	function load_routes(){
-	
+
 		$routes_from_settings = $this->settings['routes'];
 		$routes_array = explode("\n", $routes_from_settings);
 		$this->routes = Array();
@@ -78,7 +78,7 @@ class Freeway_ext {
 	}
 
 	function setup($settings){
-	
+
 		$this->settings = $settings;
 		$this->EE =& get_instance();
 		$this->original_uri = $this->EE->uri->uri_string;
@@ -112,7 +112,7 @@ class Freeway_ext {
 	function log($title, $value){
 		$this->output[$title] = $value;
 	}
-	
+
 	function store_original_uri(){
 
 		$uri_array = explode('/', $this->original_uri);
@@ -126,20 +126,20 @@ class Freeway_ext {
 	}
 
 	function should_execute(){
-		
+
 		// is a URI? (lame test for checking to see if we're viewing the CP or not)
-		return 
+		return
 			isset($this->EE->uri->uri_string) &&
 			 $this->EE->uri->uri_string != '' &&
 			// Reeroute actually executes twice - but the second timee
 			// the "settings" object isn't an array, which breaks it.
 			gettype($this->settings) == 'array';
-		
+
 	}
 
 	function convert_pattern_to_regex($pattern){
 		$regex = preg_replace('#\{\{.*?\}\}#', '.*?', $pattern);
-		return '#' . $regex . '#';
+    return '#^' . $regex . '($|/)#';
 	}
 
 	function uri_matches_pattern(){
@@ -148,9 +148,9 @@ class Freeway_ext {
 		$reversed_routes = array_reverse($this->routes);
 
 		foreach($reversed_routes as $pattern => $route){
-			
+
 			$pattern_matches = Array();
-			$pattern_match_regex =	$this->convert_pattern_to_regex($pattern); 
+			$pattern_match_regex =	$this->convert_pattern_to_regex($pattern);
 			preg_match($pattern_match_regex, $this->original_uri, $pattern_matches);
 			$match_occurred = isset($pattern_matches[0]);
 
@@ -171,7 +171,7 @@ class Freeway_ext {
 	}
 
 	function parse_new_uri_from_route(){
-	
+
 		$uri_segments = explode('/', $this->original_uri);
 		$pattern_segments = explode('/', $this->pattern);
 		$route_segments = explode('/', $this->route);
@@ -249,7 +249,7 @@ class Freeway_ext {
 	 */
 	function activate_extension()
 	{
-		
+
 		$data = array(
 			'class' => 'Freeway_ext',
 			'hook' => 'sessions_start',
@@ -263,7 +263,7 @@ class Freeway_ext {
 		// insert in database
 		$this->EE->functions->clear_caching('db');
 		$this->EE->db->insert('exp_extensions', $data);
-					
+
 	}
 
 	/**
