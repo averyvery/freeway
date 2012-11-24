@@ -121,6 +121,7 @@ class Freeway_ext {
 			$count = $i + 1;
 			$this->EE->config->_global_vars['freeway_' . $count] = $value;
 		}
+		$this->EE->config->_global_vars['freeway_original_uri'] = $this->original_uri;
 		$this->log('Original URI', $this->original_uri);
 
 	}
