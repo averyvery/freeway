@@ -173,6 +173,14 @@ class Freeway_ext {
 
 	function parse_new_uri_from_route(){
 
+		// --------------------------------------------
+		// freeway_pre_parse_uri hook
+		// --------------------------------------------
+		if ($this->EE->extensions->active_hook('freeway_pre_parse_uri') === TRUE)
+		{
+			$this->original_uri = $this->EE->extensions->call('freeway_pre_parse_uri', $this->original_uri);
+		}
+		
 		$uri_segments = explode('/', $this->original_uri);
 		$pattern_segments = explode('/', $this->pattern);
 		$route_segments = explode('/', $this->route);
