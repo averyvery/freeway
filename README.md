@@ -1,3 +1,15 @@
+# Interested in Freeway?
+
+That's cool, but you might want to look at these pages first:
+
+- [EE Template Routes](http://ellislab.com/blog/entry/template-routes-in-expressionengine-2.8)
+- [Resource Router](http://devot-ee.com/add-ons/resource-router)
+
+Freeway support is discontinued.
+
+<hr>
+
+
 # Freeway - Simple Routing for EE
 
 Freeway adds routes (a common web application concept) to EE. You set the routes in your Freeway settings like so, and just separate them with linebreaks:
@@ -88,5 +100,4 @@ You should be able to click around and watch the segments and variables update.
 ## Future Ideas
 
 - Route partial segments through, like /foo{{bar}}/ => /category-{{bar}}/
-- Run common queries like category_id on tokens before passing them on to new ones (example: {{category from=cat_name to=cat_id}} would take the cat name, but return te id 
-
+- Run common queries like category_id on tokens before passing them on to new ones (example: {{category from=cat_name to=cat_id}} would take the cat name, but return te id
